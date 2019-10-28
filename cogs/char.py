@@ -1,6 +1,7 @@
 import logging
 import yaml
 import mysql.connector
+import asyncio
 
 from utils.functions_ import is_empty
 from pathlib import Path
@@ -32,16 +33,41 @@ class CharCog(Cog, name='Character Commands'):
         self.bot = bot
 
     @command(name="character")
-    async def test(self, ctx):
+    async def character_cmd(self, ctx):
         """View your character sheet."""
         user_id = ctx.author.id
-        sql = "SELECT * FROM `character` where id = 'user_id'"
-        cursor.execute(sql)
+        channel = ctx.channel
+        select_characters = "SELECT * FROM `character` WHERE user_id = '%s'"
+        val = user_id
+        cursor.execute(select_characters, (val,))
         result = cursor.fetchall()
         if is_empty(result) is True:
-            return await ctx.send("Je moet wel een character aanmaken")
+            await ctx.send("Starting character creation process, what do you want your character to be called?")
+
+            def check(m):
+                return m.channel == channel and ctx.author == m.author
+
+            try:
+                msg = await self.bot.wait_for('message', timeout=15.0, check=check)
+            except asyncio.TimeoutError:
+                await ctx.send('No response. Character creation stopped.')
+            character_name = msg.content
+            sql = "INSERT INTO `character`(`name`, user_id) VALUES(%s, %s)"
+            val = (character_name, user_id)
+            cursor.execute(sql, val)
+            try:
+                db_connection.commit()
+                # printing what was inserted for debugging
+                print(cursor.rowcount, "was inserted.")
+                return await ctx.send('Succesfully created your character! Use !character to acces it.')
+            except:
+                return await ctx.send('Could not create your character. Something went wrong.')
         else:
-            return await ctx.send("Je hebt inderdaad een character")
+            select_character = "SELECT `name` FROM `character` WHERE user_id = '%s'"
+            val = user_id
+            cursor.execute(select_character, (val,))
+            result = cursor.fetchall()
+            print(result)
 
 
 def setup(bot):
