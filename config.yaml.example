@@ -15,3 +15,4 @@ database:
 # all the cogs the bot needs to load
 load_extensions:
   - cogs.char
+  - cogs.misc

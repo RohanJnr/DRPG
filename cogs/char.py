@@ -34,7 +34,7 @@ class CharCog(Cog, name='Character Commands'):
 
     @command(name="character")
     async def character_cmd(self, ctx):
-        """View your character sheet."""
+        """View your character."""
         user_id = ctx.author.id
         channel = ctx.channel
         select_characters = "SELECT * FROM `character` WHERE user_id = '%s'"
@@ -43,11 +43,9 @@ class CharCog(Cog, name='Character Commands'):
         result = cursor.fetchall()
         if is_empty(result) is True:
             await ctx.send("Starting character creation process, what do you want your character to be called?")
-
-            def check(m):
-                return m.channel == channel and ctx.author == m.author
-
             try:
+                def check(m):
+                    return m.channel == channel and ctx.author == m.author
                 msg = await self.bot.wait_for('message', timeout=15.0, check=check)
             except asyncio.TimeoutError:
                 await ctx.send('No response. Character creation stopped.')
@@ -57,8 +55,6 @@ class CharCog(Cog, name='Character Commands'):
             cursor.execute(sql, val)
             try:
                 db_connection.commit()
-                # printing what was inserted for debugging
-                print(cursor.rowcount, "was inserted.")
                 return await ctx.send('Succesfully created your character! Use !character to acces it.')
             except:
                 return await ctx.send('Could not create your character. Something went wrong.')
@@ -67,7 +63,39 @@ class CharCog(Cog, name='Character Commands'):
             val = user_id
             cursor.execute(select_character, (val,))
             result = cursor.fetchall()
-            print(result)
+            results = dict(zip(cursor.column_names, result[0]))
+            return await ctx.send(results['name'])
+
+    @command(name="reset")
+    async def reset_cmd(self, ctx):
+        """Reset your character."""
+        user_id = ctx.author.id
+        channel = ctx.channel
+        select_characters = "SELECT * FROM `character` WHERE user_id = '%s'"
+        val = user_id
+        cursor.execute(select_characters, (val,))
+        result = cursor.fetchall()
+        if is_empty(result) is True:
+            return await ctx.send("Can't reset progress because you havent created a character yet.")
+        else:
+            await ctx.send("Are you sure you want to reset your progress? y/n")
+            try:
+                def check(m):
+                    return m.channel == channel and ctx.author == m.author
+                msg = await self.bot.wait_for('message', timeout=15.0, check=check)
+                if msg.content == 'y' or msg.content == 'Y':
+                    sql = "DELETE FROM `character` WHERE user_id = '%s'"
+                    val = user_id
+                    cursor.execute(sql, (val,))
+                    try:
+                        db_connection.commit()
+                        return await ctx.send('Character removed. Use !character to create a new one')
+                    except:
+                        return await ctx.send('Could not remove your character. Something went wrong.')
+                elif msg.content == 'n' or msg.content == 'N':
+                    return await ctx.send("Character reset cancelled.")
+            except asyncio.TimeoutError:
+                await ctx.send('No response. Character reset stopped.')
 
 
 def setup(bot):
