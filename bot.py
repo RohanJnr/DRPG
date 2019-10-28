@@ -13,7 +13,6 @@ LOGDIR = Path('logs')
 
 
 # Set up logging
-
 def setup_logger() -> logging.Logger:
     """Create and return the root Logger object for the bot."""
     LOGDIR.mkdir(exist_ok=True)

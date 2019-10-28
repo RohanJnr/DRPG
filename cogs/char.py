@@ -7,7 +7,7 @@ from utils.functions_ import is_empty
 from pathlib import Path
 
 from discord.ext.commands import Cog, command
-from discord import Embed
+from discord import Embed, Colour
 
 log = logging.getLogger('bot.' + __name__)
 
@@ -48,10 +48,18 @@ class CharCog(Cog, name='Character Commands'):
                     return m.channel == channel and ctx.author == m.author
                 msg = await self.bot.wait_for('message', timeout=15.0, check=check)
             except asyncio.TimeoutError:
-                await ctx.send('No response. Character creation stopped.')
+                return await ctx.send('No response. Character creation stopped.')
             character_name = msg.content
-            sql = "INSERT INTO `character`(`name`, user_id) VALUES(%s, %s)"
-            val = (character_name, user_id)
+            await ctx.send('Give me a short background on your character.')
+            try:
+                def check(m):
+                    return m.channel == channel and ctx.author == m.author
+                msg = await self.bot.wait_for('message', timeout=120.0, check=check)
+            except asyncio.TimeoutError:
+                return await ctx.send('No response. Character creation stopped.')
+            character_description = msg.content
+            sql = "INSERT INTO `character`(`name`, user_id, description) VALUES(%s, %s, %s)"
+            val = (character_name, user_id, character_description)
             cursor.execute(sql, val)
             try:
                 db_connection.commit()
@@ -59,12 +67,13 @@ class CharCog(Cog, name='Character Commands'):
             except:
                 return await ctx.send('Could not create your character. Something went wrong.')
         else:
-            select_character = "SELECT `name` FROM `character` WHERE user_id = '%s'"
+            select_character = "SELECT `name`, description FROM `character` WHERE user_id = '%s'"
             val = user_id
             cursor.execute(select_character, (val,))
             result = cursor.fetchall()
             results = dict(zip(cursor.column_names, result[0]))
-            return await ctx.send(results['name'])
+            embed = Embed(title=results['name'], colour=Colour.blurple(), description=results['description'])
+            return await ctx.send(embed=embed)
 
     @command(name="reset")
     async def reset_cmd(self, ctx):
@@ -89,7 +98,7 @@ class CharCog(Cog, name='Character Commands'):
                     cursor.execute(sql, (val,))
                     try:
                         db_connection.commit()
-                        return await ctx.send('Character removed. Use !character to create a new one')
+                        return await ctx.send('Character removed. Use !character to create a new one.')
                     except:
                         return await ctx.send('Could not remove your character. Something went wrong.')
                 elif msg.content == 'n' or msg.content == 'N':
