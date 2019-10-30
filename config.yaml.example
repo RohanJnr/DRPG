@@ -16,3 +16,5 @@ database:
 load_extensions:
   - cogs.char
   - cogs.misc
+  - cogs.jobs
+  - cogs.error_handler

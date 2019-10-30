@@ -1,28 +1,15 @@
 import logging
-import yaml
-import mysql.connector
 import asyncio
 
 from utils.functions_ import is_empty
-from pathlib import Path
+from utils.db_connection import dbconnection
 
 from discord.ext.commands import Cog, command
 from discord import Embed, Colour
 
 log = logging.getLogger('bot.' + __name__)
 
-NAMEFILE = Path('config.yaml')
-
-with open(NAMEFILE, encoding='utf8') as f:
-    data = yaml.safe_load(f)
-
-db_connection = mysql.connector.connect(
-    host=data['database']['host'],
-    user=data['database']['user'],
-    passwd=data['database']['passwd'],
-    database=data['database']['database']
-)
-
+db_connection = dbconnection()
 cursor = db_connection.cursor()
 
 
@@ -34,7 +21,7 @@ class CharCog(Cog, name='Character Commands'):
 
     @command(name="character")
     async def character_cmd(self, ctx):
-        """View your character."""
+        """View your character or create one."""
         user_id = ctx.author.id
         channel = ctx.channel
         select_characters = "SELECT * FROM `character` WHERE user_id = '%s'"
@@ -58,8 +45,16 @@ class CharCog(Cog, name='Character Commands'):
             except asyncio.TimeoutError:
                 return await ctx.send('No response. Character creation stopped.')
             character_description = msg.content
+            # insert the data the user has submitted
             sql = "INSERT INTO `character`(`name`, user_id, description) VALUES(%s, %s, %s)"
             val = (character_name, user_id, character_description)
+            cursor.execute(sql, val)
+            # insert the standard data that is set on default
+            sql = "INSERT INTO inventory(character_id, gold) VALUES(%s, %s)"
+            val = (user_id, 100)
+            cursor.execute(sql, val)
+            sql = "INSERT INTO skills(character_id) VALUES(%s)"
+            val = (user_id,)
             cursor.execute(sql, val)
             try:
                 db_connection.commit()
@@ -67,12 +62,15 @@ class CharCog(Cog, name='Character Commands'):
             except:
                 return await ctx.send('Could not create your character. Something went wrong.')
         else:
-            select_character = "SELECT `name`, description FROM `character` WHERE user_id = '%s'"
+            select_character = "SELECT `name`, description, gold FROM `character` " \
+                               "LEFT JOIN inventory ON `character`.user_id = inventory.character_id " \
+                               "WHERE `character`.user_id = '%s'"
             val = user_id
             cursor.execute(select_character, (val,))
             result = cursor.fetchall()
             results = dict(zip(cursor.column_names, result[0]))
             embed = Embed(title=results['name'], colour=Colour.blurple(), description=results['description'])
+            embed.add_field(name='Inventory', value=f"**Gold:** {results['gold']}", inline=False)
             return await ctx.send(embed=embed)
 
     @command(name="reset")

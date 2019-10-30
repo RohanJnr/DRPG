@@ -9,6 +9,7 @@ verify_ssl = true
 mysql-connector = "*"
 buttons = "*"
 dblpy = "*"
+aiomysql = "*"
 
 [requires]
 python_version = "3.7"
