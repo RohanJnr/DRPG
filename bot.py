@@ -12,7 +12,7 @@ CONFIG_FILE = Path('config.yaml')
 LOGDIR = Path('logs')
 
 
-# Set up logging
+# Set up logsging
 def setup_logger() -> logging.Logger:
     """Create and return the root Logger object for the bot."""
     LOGDIR.mkdir(exist_ok=True)
@@ -30,10 +30,14 @@ def setup_logger() -> logging.Logger:
     logger.addHandler(console_log)
     logger.addHandler(file_log)
     # additionally, do some of the same configuration for the discord.py logger
-    discord_logger = logging.getLogger('discord')  # the discord.py logging instance
-    discord_logger.setLevel(logging.INFO)  # DEBUG has far too much info
-    discord_logger.addHandler(console_log)
-    discord_logger.addHandler(file_log)
+    # discord_logger = logging.getLogger('discord')  # the discord.py logging instance
+    # discord_logger.setLevel(logging.INFO)  # DEBUG has far too much info
+    # discord_logger.addHandler(console_log)
+    # discord_logger.addHandler(file_log)
+    # Silence irrelevant loggers
+    logging.getLogger("aio_pika").setLevel(logging.ERROR)
+    logging.getLogger("discord").setLevel(logging.ERROR)
+    logging.getLogger("websockets").setLevel(logging.ERROR)
     return logger
 
 
