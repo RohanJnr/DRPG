@@ -1,16 +1,14 @@
-import logging
 import asyncio
+import logging
 
-from utils.functions_ import is_empty
 from utils.db_connection import dbconnection
+from utils.functions_ import is_empty
 
-from discord.ext.commands import Cog, command
 from discord import Embed, Colour
+from discord.ext.commands import Cog, command
+
 
 log = logging.getLogger('bot.' + __name__)
-
-db_connection = dbconnection()
-cursor = db_connection.cursor()
 
 
 class CharCog(Cog, name='Character Commands'):
@@ -22,12 +20,14 @@ class CharCog(Cog, name='Character Commands'):
     @command(name="character")
     async def character_cmd(self, ctx):
         """View your character or create one."""
+        db_connection = await dbconnection()
+        cursor = await db_connection.cursor()
         user_id = ctx.author.id
         channel = ctx.channel
         select_characters = "SELECT * FROM `character` WHERE user_id = '%s'"
         val = user_id
-        cursor.execute(select_characters, (val,))
-        result = cursor.fetchall()
+        await cursor.execute(select_characters, (val,))
+        result = await cursor.fetchall()
         if is_empty(result) is True:
             await ctx.send("Starting character creation process, what do you want your character to be called?")
             try:
@@ -48,16 +48,16 @@ class CharCog(Cog, name='Character Commands'):
             # insert the data the user has submitted
             sql = "INSERT INTO `character`(`name`, user_id, description) VALUES(%s, %s, %s)"
             val = (character_name, user_id, character_description)
-            cursor.execute(sql, val)
+            await cursor.execute(sql, val)
             # insert the standard data that is set on default
             sql = "INSERT INTO inventory(character_id, gold) VALUES(%s, %s)"
             val = (user_id, 100)
-            cursor.execute(sql, val)
+            await cursor.execute(sql, val)
             sql = "INSERT INTO skills(character_id) VALUES(%s)"
             val = (user_id,)
-            cursor.execute(sql, val)
+            await cursor.execute(sql, val)
             try:
-                db_connection.commit()
+                await db_connection.commit()
                 return await ctx.send('Succesfully created your character! Use !character to acces it.')
             except:
                 return await ctx.send('Could not create your character. Something went wrong.')
@@ -66,22 +66,26 @@ class CharCog(Cog, name='Character Commands'):
                                "LEFT JOIN inventory ON `character`.user_id = inventory.character_id " \
                                "WHERE `character`.user_id = '%s'"
             val = user_id
-            cursor.execute(select_character, (val,))
-            result = cursor.fetchall()
+            await cursor.execute(select_character, (val,))
+            result = await cursor.fetchall()
             results = dict(zip(cursor.column_names, result[0]))
             embed = Embed(title=results['name'], colour=Colour.blurple(), description=results['description'])
             embed.add_field(name='Inventory', value=f"**Gold:** {results['gold']}", inline=False)
             return await ctx.send(embed=embed)
+        await cursor.close()
+        db_connection.close()
 
     @command(name="reset")
     async def reset_cmd(self, ctx):
         """Reset your character."""
+        db_connection = await dbconnection()
+        cursor = await db_connection.cursor()
         user_id = ctx.author.id
         channel = ctx.channel
         select_characters = "SELECT * FROM `character` WHERE user_id = '%s'"
         val = user_id
-        cursor.execute(select_characters, (val,))
-        result = cursor.fetchall()
+        await cursor.execute(select_characters, (val,))
+        result = await cursor.fetchall()
         if is_empty(result) is True:
             return await ctx.send("Can't reset progress because you havent created a character yet.")
         else:
@@ -93,9 +97,9 @@ class CharCog(Cog, name='Character Commands'):
                 if msg.content == 'y' or msg.content == 'Y':
                     sql = "DELETE FROM `character` WHERE user_id = '%s'"
                     val = user_id
-                    cursor.execute(sql, (val,))
+                    await cursor.execute(sql, (val,))
                     try:
-                        db_connection.commit()
+                        await db_connection.commit()
                         return await ctx.send('Character removed. Use !character to create a new one.')
                     except:
                         return await ctx.send('Could not remove your character. Something went wrong.')
@@ -103,6 +107,9 @@ class CharCog(Cog, name='Character Commands'):
                     return await ctx.send("Character reset cancelled.")
             except asyncio.TimeoutError:
                 await ctx.send('No response. Character reset stopped.')
+
+        await cursor.close()
+        db_connection.close()
 
 
 def setup(bot):
