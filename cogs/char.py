@@ -58,8 +58,12 @@ class CharCog(Cog, name='Character Commands'):
             await cursor.execute(sql, val)
             try:
                 await db_connection.commit()
+                await cursor.close()
+                db_connection.close()
                 return await ctx.send('Succesfully created your character! Use !character to acces it.')
             except:
+                await cursor.close()
+                db_connection.close()
                 return await ctx.send('Could not create your character. Something went wrong.')
         else:
             select_character = "SELECT `name`, description, gold FROM `character` " \
@@ -75,9 +79,9 @@ class CharCog(Cog, name='Character Commands'):
                 result.append(row)
             embed = Embed(title=result[0]['name'], colour=Colour.blurple(), description=result[0]['description'])
             embed.add_field(name='Inventory', value=f"**Gold:** {result[0]['gold']}", inline=False)
+            await cursor.close()
+            db_connection.close()
             return await ctx.send(embed=embed)
-        await cursor.close()
-        db_connection.close()
 
     @command(name="reset")
     async def reset_cmd(self, ctx):
@@ -91,6 +95,8 @@ class CharCog(Cog, name='Character Commands'):
         await cursor.execute(select_characters, (val,))
         result = await cursor.fetchall()
         if is_empty(result) is True:
+            await cursor.close()
+            db_connection.close()
             return await ctx.send("Can't reset progress because you havent created a character yet.")
         else:
             await ctx.send("Are you sure you want to reset your progress? y/n")
@@ -104,15 +110,21 @@ class CharCog(Cog, name='Character Commands'):
                     await cursor.execute(sql, (val,))
                     try:
                         await db_connection.commit()
+                        await cursor.close()
+                        db_connection.close()
                         return await ctx.send('Character removed. Use !character to create a new one.')
                     except:
+                        await cursor.close()
+                        db_connection.close()
                         return await ctx.send('Could not remove your character. Something went wrong.')
                 elif msg.content == 'n' or msg.content == 'N':
+                    await cursor.close()
+                    db_connection.close()
                     return await ctx.send("Character reset cancelled.")
             except asyncio.TimeoutError:
                 await ctx.send('No response. Character reset stopped.')
-        await cursor.close()
-        db_connection.close()
+                await cursor.close()
+                db_connection.close()
 
 
 def setup(bot):
