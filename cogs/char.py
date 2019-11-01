@@ -7,7 +7,6 @@ from utils.functions_ import is_empty
 from discord import Embed, Colour
 from discord.ext.commands import Cog, command
 
-
 log = logging.getLogger('bot.' + __name__)
 
 
@@ -33,6 +32,7 @@ class CharCog(Cog, name='Character Commands'):
             try:
                 def check(m):
                     return m.channel == channel and ctx.author == m.author
+
                 msg = await self.bot.wait_for('message', timeout=15.0, check=check)
             except asyncio.TimeoutError:
                 return await ctx.send('No response. Character creation stopped.')
@@ -41,6 +41,7 @@ class CharCog(Cog, name='Character Commands'):
             try:
                 def check(m):
                     return m.channel == channel and ctx.author == m.author
+
                 msg = await self.bot.wait_for('message', timeout=120.0, check=check)
             except asyncio.TimeoutError:
                 return await ctx.send('No response. Character creation stopped.')
@@ -66,7 +67,7 @@ class CharCog(Cog, name='Character Commands'):
                 db_connection.close()
                 return await ctx.send('Could not create your character. Something went wrong.')
         else:
-            select_character = "SELECT `name`, description, gold, job FROM `character` " \
+            select_character = "SELECT * FROM `character` " \
                                "LEFT JOIN inventory ON `character`.user_id = inventory.character_id " \
                                "LEFT JOIN jobs ON inventory.character_id  = jobs.character_id " \
                                "AND jobs.current_job = %s " \
@@ -74,15 +75,19 @@ class CharCog(Cog, name='Character Commands'):
             val = ('true', user_id)
             await cursor.execute(select_character, val)
             results = await cursor.fetchall()
-            print(results)
             columns = [desc[0] for desc in cursor.description]
             result = []
             for row in results:
                 row = dict(zip(columns, row))
                 result.append(row)
             embed = Embed(title=result[0]['name'], colour=Colour.blurple(), description=result[0]['description'])
-            embed.add_field(name="Details", value=f"**Current Job:** {result[0]['job']}")
-            embed.add_field(name='Inventory', value=f"**Gold:** {result[0]['gold']}", inline=False)
+            embed.add_field(name="Details", value=f"**Current Job:** {result[0]['job']} \n")
+            ores = ['stone', 'coal', 'iron', 'ruby']
+            desc = ''
+            for x in ores:
+                if result[0][x] > 0:
+                    desc += f"**{x}:** {result[0][x]} \n"
+            embed.add_field(name='Inventory', value=f"**Gold:** {result[0]['gold']}\n{desc}", inline=False)
             await cursor.close()
             db_connection.close()
             return await ctx.send(embed=embed)
@@ -107,6 +112,7 @@ class CharCog(Cog, name='Character Commands'):
             try:
                 def check(m):
                     return m.channel == channel and ctx.author == m.author
+
                 msg = await self.bot.wait_for('message', timeout=15.0, check=check)
                 if msg.content == 'y' or msg.content == 'Y':
                     sql = "DELETE FROM `character` WHERE user_id = '%s'"
@@ -126,9 +132,9 @@ class CharCog(Cog, name='Character Commands'):
                     db_connection.close()
                     return await ctx.send("Character reset cancelled.")
             except asyncio.TimeoutError:
-                await ctx.send('No response. Character reset stopped.')
                 await cursor.close()
                 db_connection.close()
+                return await ctx.send('No response. Character reset stopped.')
 
 
 def setup(bot):

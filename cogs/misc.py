@@ -37,6 +37,9 @@ class MiscCog(Cog, name='Misc'):
                     if cmd.name == 'job':
                         for sub_cmd in cmd.walk_commands():
                             message += f' \n  **{self.config["prefix"]}{sub_cmd}** \n *{sub_cmd.help}*'
+                    if cmd.name == 'leaderboard':
+                        for sub_cmd in cmd.walk_commands():
+                            message += f' \n  **{self.config["prefix"]}{sub_cmd}** \n *{sub_cmd.help}*'
                     else:
                         message += f' \n  **{self.config["prefix"]}{cmd}** \n *{cmd.help}*'
                 help_embed = Embed(title=cog_name, colour=Colour.blurple(), description=message)
