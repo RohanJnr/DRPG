@@ -66,18 +66,22 @@ class CharCog(Cog, name='Character Commands'):
                 db_connection.close()
                 return await ctx.send('Could not create your character. Something went wrong.')
         else:
-            select_character = "SELECT `name`, description, gold FROM `character` " \
+            select_character = "SELECT `name`, description, gold, job FROM `character` " \
                                "LEFT JOIN inventory ON `character`.user_id = inventory.character_id " \
+                               "LEFT JOIN jobs ON inventory.character_id  = jobs.character_id " \
+                               "AND jobs.current_job = %s " \
                                "WHERE `character`.user_id = '%s'"
-            val = user_id
-            await cursor.execute(select_character, (val,))
+            val = ('true', user_id)
+            await cursor.execute(select_character, val)
             results = await cursor.fetchall()
+            print(results)
             columns = [desc[0] for desc in cursor.description]
             result = []
             for row in results:
                 row = dict(zip(columns, row))
                 result.append(row)
             embed = Embed(title=result[0]['name'], colour=Colour.blurple(), description=result[0]['description'])
+            embed.add_field(name="Details", value=f"**Current Job:** {result[0]['job']}")
             embed.add_field(name='Inventory', value=f"**Gold:** {result[0]['gold']}", inline=False)
             await cursor.close()
             db_connection.close()

@@ -34,7 +34,7 @@ class MiscCog(Cog, name='Misc'):
                 commands = [cmd for cmd in cog.get_commands() if not cmd.hidden or cmd.name == 'help']
                 message = cog.description + '\n'
                 for cmd in commands:
-                    if cmd.name == 'subreddit':
+                    if cmd.name == 'job':
                         for sub_cmd in cmd.walk_commands():
                             message += f' \n  **{self.config["prefix"]}{sub_cmd}** \n *{sub_cmd.help}*'
                     else:

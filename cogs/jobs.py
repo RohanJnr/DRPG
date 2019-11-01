@@ -65,6 +65,33 @@ class JobsCog(Cog, name='Jobs'):
                 db_connection.close()
                 return await ctx.send(f"That job doesnt exist. Pick one of the following: {[job for job in available_jobs]}")
 
+    @job.command(name="leave")
+    async def job_leave(self, ctx):
+        """Leave your job."""
+        db_connection = await dbconnection()
+        cursor = await db_connection.cursor()
+        user_id = ctx.author.id
+        sql = "SELECT * FROM jobs WHERE character_id = '%s' AND current_job = %s"
+        val = (user_id, 'true')
+        await cursor.execute(sql, val)
+        results = await cursor.fetchall()
+        if is_empty(results):
+            await cursor.close()
+            db_connection.close()
+            return await ctx.send("You dont have a job. Use `!job join {job_name}` to join one.")
+        else:
+            sql = "SELECT job FROM jobs WHERE current_job = %s"
+            val = "true"
+            await cursor.execute(sql, (val,))
+            results = await cursor.fetchall()
+            sql = "UPDATE jobs SET current_job = %s WHERE character_id = '%s' AND job = %s"
+            val = ('false', user_id, results[0][0])
+            await cursor.execute(sql, val)
+            await db_connection.commit()
+            await cursor.close()
+            db_connection.close()
+            return await ctx.send("Left your job.")
+
 
 def setup(bot):
     bot.add_cog(JobsCog(bot))
