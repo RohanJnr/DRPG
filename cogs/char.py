@@ -53,8 +53,8 @@ class CharCog(Cog, name='Character Commands'):
             sql = "INSERT INTO inventory(character_id, gold) VALUES(%s, %s)"
             val = (user_id, 100)
             await cursor.execute(sql, val)
-            sql = "INSERT INTO skills(character_id) VALUES(%s)"
-            val = (user_id,)
+            sql = "INSERT INTO jobs(character_id, job) VALUES(%s, %s)"
+            val = (user_id, 'miner')
             await cursor.execute(sql, val)
             try:
                 await db_connection.commit()
@@ -67,10 +67,14 @@ class CharCog(Cog, name='Character Commands'):
                                "WHERE `character`.user_id = '%s'"
             val = user_id
             await cursor.execute(select_character, (val,))
-            result = await cursor.fetchall()
-            results = dict(zip(cursor.column_names, result[0]))
-            embed = Embed(title=results['name'], colour=Colour.blurple(), description=results['description'])
-            embed.add_field(name='Inventory', value=f"**Gold:** {results['gold']}", inline=False)
+            results = await cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+            result = []
+            for row in results:
+                row = dict(zip(columns, row))
+                result.append(row)
+            embed = Embed(title=result[0]['name'], colour=Colour.blurple(), description=result[0]['description'])
+            embed.add_field(name='Inventory', value=f"**Gold:** {result[0]['gold']}", inline=False)
             return await ctx.send(embed=embed)
         await cursor.close()
         db_connection.close()
@@ -107,7 +111,6 @@ class CharCog(Cog, name='Character Commands'):
                     return await ctx.send("Character reset cancelled.")
             except asyncio.TimeoutError:
                 await ctx.send('No response. Character reset stopped.')
-
         await cursor.close()
         db_connection.close()
 

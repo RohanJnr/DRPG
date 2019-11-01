@@ -24,7 +24,7 @@ class MiscCog(Cog, name='Misc'):
     @command(name='help')
     async def help_cmd(self, ctx, second_help: str = None):
         """View all of the commands."""
-        cogs = sorted([cog for cog in self.bot.cogs.keys() if cog not in ['ErrorHandler', 'Tavern', 'Events']])
+        cogs = sorted([cog for cog in self.bot.cogs.keys() if cog not in ['ErrorHandler', 'Admin']])
         pages = []
         page = 1
         cmd_names = [cmd.name for cmd in self.bot.commands]
