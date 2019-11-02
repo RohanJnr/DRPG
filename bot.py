@@ -7,6 +7,9 @@ from pathlib import Path
 from discord import __version__ as discver, Activity, ActivityType
 from discord.ext.commands import Bot
 
+from utils import functions_
+from utils.database import db_functions as db
+
 
 CONFIG_FILE = Path('config.yaml')
 LOGDIR = Path('logs')
@@ -52,7 +55,7 @@ bot = Bot(
         name=f'{config["prefix"]}help',
         type=ActivityType.watching
     ),
-    command_prefix="!",
+    command_prefix=functions_.get_prefix,
     pm_help=True
 )
 
@@ -62,8 +65,8 @@ bot.start_time = datetime.datetime.now()
 
 @bot.event
 async def on_ready():
+    await db.cache_prefixes()
     log.info(f"Connected as {bot.user}, using discord.py {discver}")
-
 
 def main():
     """Load cogs, configuration, and start the bot."""
