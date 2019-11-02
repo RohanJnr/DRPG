@@ -1,0 +1,62 @@
+[
+  {
+    "level" : 1,
+    "actions_required" : 0,
+    "ores" : [
+      {
+        "Stone": 60,
+        "Coal" : 20,
+        "Iron" : 15,
+        "Ruby" : 5
+      }
+    ]
+  },
+  {
+    "level" : 2,
+    "actions_required" : 0,
+    "ores" : [
+      {
+        "Stone": 50,
+        "Coal" : 25,
+        "Iron" : 20,
+        "Ruby" : 5
+      }
+    ]
+  },
+  {
+    "level" : 3,
+    "actions_required" : 0,
+    "ores" : [
+      {
+        "Stone": 40,
+        "Coal" : 30,
+        "Iron" : 20,
+        "Ruby" : 10
+      }
+    ]
+  },
+  {
+    "level" : 4,
+    "actions_required" : 0,
+    "ores" : [
+      {
+        "Stone": 25,
+        "Coal" : 35,
+        "Iron" : 30,
+        "Ruby" : 10
+      }
+    ]
+  },
+  {
+    "level" : 5,
+    "actions_required" : 0,
+    "ores" : [
+      {
+        "Coal" : 50,
+        "Iron" : 35,
+        "Ruby" : 10,
+        "Diamond" : 5
+      }
+    ]
+  }
+]

@@ -1,5 +1,6 @@
 import logging
 import random
+import json
 
 from utils.functions_ import has_job, dbconnection
 
@@ -8,6 +9,9 @@ from discord.ext.commands.cooldowns import BucketType
 
 
 log = logging.getLogger('bot.' + __name__)
+
+with open('jsons/mining.json', 'r') as f:
+    data = json.load(f)
 
 
 class JobactionsCog(Cog, name='Job Actions'):
@@ -25,12 +29,29 @@ class JobactionsCog(Cog, name='Job Actions'):
         user_id = ctx.author.id
         can_proceed = await has_job('miner', user_id)
         if can_proceed is True:
-            ores = {'Stone': 60, 'Coal': 20, 'Iron': 15, 'Ruby': 5}
+            sql = "SELECT `level` FROM jobs WHERE character_id = '%s' AND job = %s"
+            val = (user_id, 'miner')
+            await cursor.execute(sql, val)
+            results = await cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+            result = []
+            for row in results:
+                row = dict(zip(columns, row))
+                result.append(row)
+            mining_level = result[0]['level']
+            for level in data:
+                if level['level'] == mining_level:
+                    ores = level['ores'][0]
             ore = random.choices(list(ores.keys()), weights=ores.values())[0]
             ore = ore.lower()
-            sql = "UPDATE inventory SET " + ore + " = " + ore + " + 1 WHERE character_id = '%s'"
+            sql = "UPDATE inventory SET " + ore + " = " + ore + "+ 1, skillshard = skillshard + 1 WHERE character_id " \
+                                                                "= '%s' "
             val = user_id
             await cursor.execute(sql, (val,))
+            await db_connection.commit()
+            sql = "UPDATE jobs SET actions = actions + %s WHERE character_id = '%s' AND job = %s"
+            val = (1, user_id, 'miner')
+            await cursor.execute(sql, val)
             await db_connection.commit()
             return await ctx.send(f"You venture deep into the mines and find: {ore}. In addition you get 1 skill shard.")
         else:

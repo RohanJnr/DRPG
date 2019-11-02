@@ -5,9 +5,17 @@ from utils.db_connection import dbconnection
 from utils.functions_ import is_empty
 
 from discord import Embed, Colour
-from discord.ext.commands import Cog, command
+from discord.ext import buttons
+from discord.ext.commands import Cog, command, cooldown
+from discord.ext.commands.cooldowns import BucketType
 
 log = logging.getLogger('bot.' + __name__)
+
+
+class Paginator(buttons.Paginator):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class CharCog(Cog, name='Character Commands'):
@@ -16,6 +24,7 @@ class CharCog(Cog, name='Character Commands'):
     def __init__(self, bot):
         self.bot = bot
 
+    @cooldown(1, 15, BucketType.user)
     @command(name="character")
     async def character_cmd(self, ctx):
         """View your character or create one."""
@@ -32,7 +41,6 @@ class CharCog(Cog, name='Character Commands'):
             try:
                 def check(m):
                     return m.channel == channel and ctx.author == m.author
-
                 msg = await self.bot.wait_for('message', timeout=15.0, check=check)
             except asyncio.TimeoutError:
                 return await ctx.send('No response. Character creation stopped.')
@@ -67,6 +75,7 @@ class CharCog(Cog, name='Character Commands'):
                 db_connection.close()
                 return await ctx.send('Could not create your character. Something went wrong.')
         else:
+            pages = []
             select_character = "SELECT * FROM `character` " \
                                "LEFT JOIN inventory ON `character`.user_id = inventory.character_id " \
                                "LEFT JOIN jobs ON inventory.character_id  = jobs.character_id " \
@@ -88,9 +97,15 @@ class CharCog(Cog, name='Character Commands'):
                 if result[0][x] > 0:
                     desc += f"**{x}:** {result[0][x]} \n"
             embed.add_field(name='Inventory', value=f"**Gold:** {result[0]['gold']}\n{desc}", inline=False)
+            pages.append(embed)
+            desc = f"**Skill Shards:** {result[0]['skillshard']}"
+            embed = Embed(title="Skills", colour=Colour.blurple(), description=desc)
+            pages.append(embed)
             await cursor.close()
             db_connection.close()
-            return await ctx.send(embed=embed)
+            embed = Paginator(embed=False, timeout=90, use_defaults=True,
+                              extra_pages=pages, length=1)
+            await embed.start(ctx)
 
     @command(name="reset")
     async def reset_cmd(self, ctx):
