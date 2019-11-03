@@ -5,6 +5,7 @@ import asyncio
 from utils.db_connection import dbconnection
 from utils.functions_ import is_empty
 
+from discord import Embed, Colour
 from discord.ext.commands import Bot, Cog, command
 
 log = logging.getLogger('bot.' + __name__)
@@ -20,6 +21,15 @@ class ShopCog(Cog, name='Shop'):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.config = self.bot.config
+
+    @command(name="shop")
+    async def shop_cmd(self, ctx):
+        desc = "Current materials and their values. \n"
+        for item in data[0]:
+            desc += f"**{item}:** {data[0][item]} gold. \n"
+        embed = Embed(title="Shop", colour=Colour.blurple(), description=desc)
+        embed.set_footer(text="Use `!sell {item}` to sell an item.")
+        return await ctx.send(embed=embed)
 
     @command(name="sell")
     async def sell_item(self, ctx, item_to_sell):
@@ -52,7 +62,7 @@ class ShopCog(Cog, name='Shop'):
                     else:
                         selling_value = data[0][item_to_sell]
                         sold_for = int(selling_value) * int(amount_to_sell)
-                        sql = f"UPDATE inventory SET {item_to_sell} = {item_to_sell} - {amount_to_sell}, gold = gold + {selling_value} WHERE character_id = %s"
+                        sql = f"UPDATE inventory SET {item_to_sell} = {item_to_sell} - {amount_to_sell}, gold = gold + {sold_for} WHERE character_id = %s"
                         val = user_id
                         await cursor.execute(sql, (val,))
                         await db_connection.commit()
