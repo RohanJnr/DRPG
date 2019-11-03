@@ -29,7 +29,7 @@ class JobactionsCog(Cog, name='Job Actions'):
         user_id = ctx.author.id
         can_proceed = await has_job('miner', user_id)
         if can_proceed is True:
-            sql = "SELECT `level` FROM jobs WHERE character_id = '%s' AND job = %s"
+            sql = "SELECT `level`, actions FROM jobs WHERE character_id = '%s' AND job = %s"
             val = (user_id, 'miner')
             await cursor.execute(sql, val)
             results = await cursor.fetchall()
@@ -39,6 +39,10 @@ class JobactionsCog(Cog, name='Job Actions'):
                 row = dict(zip(columns, row))
                 result.append(row)
             mining_level = result[0]['level']
+            actions = result[0]['actions']
+            for level in data:
+                if actions >= level['actions_required']:
+                    mining_level = level['level']
             for level in data:
                 if level['level'] == mining_level:
                     ores = level['ores'][0]
@@ -49,10 +53,12 @@ class JobactionsCog(Cog, name='Job Actions'):
             val = user_id
             await cursor.execute(sql, (val,))
             await db_connection.commit()
-            sql = "UPDATE jobs SET actions = actions + %s WHERE character_id = '%s' AND job = %s"
-            val = (1, user_id, 'miner')
+            sql = "UPDATE jobs SET actions = actions + %s, `level` = %s WHERE character_id = '%s' AND job = %s"
+            val = (1, mining_level, user_id, 'miner')
             await cursor.execute(sql, val)
             await db_connection.commit()
+            await cursor.close()
+            db_connection.close()
             return await ctx.send(f"You venture deep into the mines and find: {ore}. In addition you get 1 skill shard.")
         else:
             return await ctx.send("Only miners have acces to this command. To become one use: `!job join miner`")

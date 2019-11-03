@@ -45,7 +45,7 @@ class LeaderboardsCog(Cog, name='Leaderboards'):
         number = 0
         for entry in result:
             number += 1
-            desc += f"{number}. {entry['name']}: {entry['gold']} gold.\n"
+            desc += f"**#{number}. {entry['name']}:** {entry['gold']} gold.\n"
         embed = Embed(title="Top 10 Wealth", colour=Colour.blurple(), description=desc)
         await cursor.close()
         db_connection.close()
