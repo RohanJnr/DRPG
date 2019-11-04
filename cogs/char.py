@@ -95,11 +95,17 @@ class CharCog(Cog, name='Character Commands'):
             desc = ''
             for x in ores:
                 if result[0][x] > 0:
-                    desc += f"**{x}:** {result[0][x]} \n"
+                    desc += f"**{x.capitalize()}:** {result[0][x]} \n"
             embed.add_field(name='Inventory', value=f"**Gold:** {result[0]['gold']}\n{desc}", inline=False)
+            embed.set_footer(text="Page 1/3")
             pages.append(embed)
             desc = f"**Skill Shards:** {result[0]['skillshard']}"
             embed = Embed(title="Skills", colour=Colour.blurple(), description=desc)
+            embed.set_footer(text="Page 2/3")
+            pages.append(embed)
+            desc = f"**Autosell:** {result[0]['autosell']}"
+            embed = Embed(title="Settings", colour=Colour.blurple(), description=desc)
+            embed.set_footer(text="Page 3/3")
             pages.append(embed)
             await cursor.close()
             db_connection.close()

@@ -2,7 +2,7 @@ import logging
 import json
 import asyncio
 
-from utils.db_connection import dbconnection
+from utils.database import db_functions as db
 from utils.functions_ import is_empty
 
 from discord import Embed, Colour
@@ -33,7 +33,7 @@ class ShopCog(Cog, name='Shop'):
 
     @command(name="sell")
     async def sell_item(self, ctx, item_to_sell):
-        db_connection = await dbconnection()
+        db_connection = await db.dbconnection()
         cursor = await db_connection.cursor()
         channel = ctx.channel
         user_id = ctx.author.id
@@ -66,6 +66,8 @@ class ShopCog(Cog, name='Shop'):
                         val = user_id
                         await cursor.execute(sql, (val,))
                         await db_connection.commit()
+                        await cursor.close()
+                        db_connection.close()
                         return await ctx.send(f"Sold {amount_to_sell} {item_to_sell} for {sold_for} gold.")
                 else:
                     return await ctx.send("You have to submit a valid amount.")
@@ -73,6 +75,33 @@ class ShopCog(Cog, name='Shop'):
                 return await ctx.send("Sorry you do not have enough of that item in order to sell it.")
         else:
             return await ctx.send("The item you are trying to sell does not exist.")
+
+    @command(name="autosell")
+    async def autosell_cmd(self, ctx):
+        user_id = ctx.author.id
+        sql = "SELECT autosell FROM `character` WHERE user_id = '%s'"
+        val = user_id
+        db_connection = await db.dbconnection()
+        cursor = await db_connection.cursor()
+        await cursor.execute(sql, (val,))
+        result = await cursor.fetchall()
+        autosell = result[0][0]
+        if autosell == 'true':
+            sql = "UPDATE `character` SET autosell = %s"
+            val = 'false'
+            await cursor.execute(sql, (val,))
+            await db_connection.commit()
+            await cursor.close()
+            db_connection.close()
+            return await ctx.send("Turned autosell off. This command can be used any time to turn it on.")
+        if autosell == 'false':
+            sql = "UPDATE `character` SET autosell = %s"
+            val = 'true'
+            await cursor.execute(sql, (val,))
+            await db_connection.commit()
+            await cursor.close()
+            db_connection.close()
+            return await ctx.send("Turned autosell on. This command can be used any time to turn it off.")
 
 
 def setup(bot):

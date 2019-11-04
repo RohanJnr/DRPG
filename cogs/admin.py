@@ -1,6 +1,6 @@
 import logging
 
-from utils.db_connection import dbconnection
+from utils.database import db_functions as db
 from utils.checks import is_admin
 
 from discord.ext.commands import Bot, Cog, command
@@ -19,7 +19,7 @@ class AdminCog(Cog, name='Admin'):
     @is_admin()
     @command(name="hardreset", hidden=True)
     async def hard_reset(self, ctx):
-        db_connection = await dbconnection()
+        db_connection = await db.dbconnection()
         cursor = await db_connection.cursor()
         sql = "DELETE FROM `character` WHERE 1 = 1"
         await cursor.execute(sql)

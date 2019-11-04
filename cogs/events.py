@@ -1,6 +1,5 @@
 import logging
 
-import discord
 from discord.ext import commands
 
 from utils.database import db_functions as db

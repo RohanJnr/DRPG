@@ -32,7 +32,7 @@ class JobsCog(Cog, name='Jobs'):
     @job.command(name="join")
     async def job_join(self, ctx, job_to_join: str):
         """Join a new job."""
-        db_connection = await dbconnection()
+        db_connection = await db.dbconnection()
         cursor = await db_connection.cursor()
         user_id = ctx.author.id
         sql = "SELECT * FROM jobs WHERE character_id = '%s'"
@@ -68,7 +68,7 @@ class JobsCog(Cog, name='Jobs'):
     @job.command(name="leave")
     async def job_leave(self, ctx):
         """Leave your job."""
-        db_connection = await dbconnection()
+        db_connection = await db.dbconnection()
         cursor = await db_connection.cursor()
         user_id = ctx.author.id
         sql = "SELECT * FROM jobs WHERE character_id = '%s' AND current_job = %s"

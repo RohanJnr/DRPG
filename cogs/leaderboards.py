@@ -1,6 +1,6 @@
 import logging
 
-from utils.db_connection import dbconnection
+from utils.database import db_functions as db
 
 from discord import Embed, Colour
 from discord.ext.commands import Cog
@@ -29,7 +29,7 @@ class LeaderboardsCog(Cog, name='Leaderboards'):
     @leaderboard.command(name="wealth")
     async def top_wealth(self, ctx):
         """Shows the top 10 users with the most gold."""
-        db_connection = await dbconnection()
+        db_connection = await db.dbconnection()
         cursor = await db_connection.cursor()
         sql = "SELECT `character`.name, inventory.gold FROM inventory " \
               "JOIN `character` WHERE `character`.user_id = inventory.character_id " \

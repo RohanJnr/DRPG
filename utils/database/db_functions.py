@@ -45,7 +45,6 @@ async def sql_query(sql_code, values=()):
             return results
     
 
-
 async def sql_edit(sql_code, values=()):
     """A function used to make database queries."""
     conn = await dbconnection()
@@ -62,7 +61,6 @@ async def sql_edit(sql_code, values=()):
             conn.close()
             return True
     
-
 
 async def cache_prefixes():
     """Cache all prefixes."""
