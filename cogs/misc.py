@@ -24,7 +24,7 @@ class MiscCog(Cog, name='Misc'):
     @command(name='help')
     async def help_cmd(self, ctx, second_help: str = None):
         """View all of the commands."""
-        cogs = sorted([cog for cog in self.bot.cogs.keys() if cog not in ['ErrorHandler', 'Tavern', 'Events']])
+        cogs = sorted([cog for cog in self.bot.cogs.keys() if cog not in ['ErrorHandler', 'Admin']])
         pages = []
         page = 1
         cmd_names = [cmd.name for cmd in self.bot.commands]
@@ -34,7 +34,10 @@ class MiscCog(Cog, name='Misc'):
                 commands = [cmd for cmd in cog.get_commands() if not cmd.hidden or cmd.name == 'help']
                 message = cog.description + '\n'
                 for cmd in commands:
-                    if cmd.name == 'subreddit':
+                    if cmd.name == 'job':
+                        for sub_cmd in cmd.walk_commands():
+                            message += f' \n  **{self.config["prefix"]}{sub_cmd}** \n *{sub_cmd.help}*'
+                    if cmd.name == 'leaderboard':
                         for sub_cmd in cmd.walk_commands():
                             message += f' \n  **{self.config["prefix"]}{sub_cmd}** \n *{sub_cmd.help}*'
                     else:
