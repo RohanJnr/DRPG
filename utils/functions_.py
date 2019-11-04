@@ -1,4 +1,6 @@
+from utils.database.db_functions import GUILD_SETTINGS
 from utils.db_connection import dbconnection
+
 
 
 def is_empty(structure):
@@ -9,6 +11,15 @@ def is_empty(structure):
         # structure is empty return true
         return True
 
+def get_prefix(bot, message):
+	if not message.guild:
+		return bot.config["prefix"]
+	try:
+		prefix = GUILD_SETTINGS[message.guild.id]
+	except KeyError:
+		prefix = bot.config["prefix"]
+
+	return prefix
 
 async def has_job(job, user_id):
     db_connection = await dbconnection()

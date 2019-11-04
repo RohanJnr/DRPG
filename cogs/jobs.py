@@ -1,7 +1,7 @@
 import logging
 
 from utils.functions_ import is_empty
-from utils.db_connection import dbconnection
+from utils.database import db_functions as db
 
 from discord import Colour, Embed
 from discord.ext.commands import Bot, Cog

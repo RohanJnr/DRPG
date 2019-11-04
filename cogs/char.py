@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from utils.db_connection import dbconnection
+from utils.database import db_functions as db
 from utils.functions_ import is_empty
 
 from discord import Embed, Colour
@@ -28,7 +28,7 @@ class CharCog(Cog, name='Character Commands'):
     @command(name="character")
     async def character_cmd(self, ctx):
         """View your character or create one."""
-        db_connection = await dbconnection()
+        db_connection = await db.dbconnection()
         cursor = await db_connection.cursor()
         user_id = ctx.author.id
         channel = ctx.channel
@@ -110,7 +110,7 @@ class CharCog(Cog, name='Character Commands'):
     @command(name="reset")
     async def reset_cmd(self, ctx):
         """Reset your character."""
-        db_connection = await dbconnection()
+        db_connection = await db.dbconnection()
         cursor = await db_connection.cursor()
         user_id = ctx.author.id
         channel = ctx.channel
