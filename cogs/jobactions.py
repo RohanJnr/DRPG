@@ -5,7 +5,6 @@ import json
 from utils.functions_ import has_job
 from utils.database import db_functions as db
 
-from discord import Embed, Colour
 from discord.ext.commands import Cog, command, cooldown
 from discord.ext.commands.cooldowns import BucketType
 

@@ -24,6 +24,7 @@ class ShopCog(Cog, name='Shop'):
 
     @command(name="shop")
     async def shop_cmd(self, ctx):
+        """View all sellable items and their values."""
         desc = "Current materials and their values. \n"
         for item in data[0]:
             desc += f"**{item}:** {data[0][item]} gold. \n"
@@ -33,6 +34,7 @@ class ShopCog(Cog, name='Shop'):
 
     @command(name="sell")
     async def sell_item(self, ctx, item_to_sell):
+        """Sell 1 or multiple items."""
         db_connection = await db.dbconnection()
         cursor = await db_connection.cursor()
         channel = ctx.channel
@@ -78,6 +80,7 @@ class ShopCog(Cog, name='Shop'):
 
     @command(name="autosell")
     async def autosell_cmd(self, ctx):
+        """Used to turn autoselling on or off."""
         user_id = ctx.author.id
         sql = "SELECT autosell FROM `character` WHERE user_id = '%s'"
         val = user_id
@@ -87,9 +90,9 @@ class ShopCog(Cog, name='Shop'):
         result = await cursor.fetchall()
         autosell = result[0][0]
         if autosell == 'true':
-            sql = "UPDATE `character` SET autosell = %s"
-            val = 'false'
-            await cursor.execute(sql, (val,))
+            sql = "UPDATE `character` SET autosell = %s WHERE user_id = '%s'"
+            val = ('false', user_id)
+            await cursor.execute(sql, val)
             await db_connection.commit()
             await cursor.close()
             db_connection.close()
