@@ -8,6 +8,7 @@ logger = logging.getLogger('bot.' + __name__)
 
 
 GUILD_SETTINGS = {}
+CHARACTER_DATA = []
 
 
 async def dbconnection():
@@ -69,5 +70,18 @@ async def cache_prefixes():
     results = await sql_query(sql)
     for result in results:
         GUILD_SETTINGS[result[0]] = result[1]
-    print(GUILD_SETTINGS)
-    logger.info("Caching prefixes done!")
+    logger.info("Caching prefixes DONE!")
+
+async def cache_characters():
+    """Cache all characters"""
+    logger.info("caching character's data...")
+    sql = "select * from `character`"
+    results = await sql_query(sql)
+    for result in results:
+        character_details = {
+            "owner":int(result[1]),
+            "name": result[0],
+            "desc": result[2]
+        }
+        CHARACTER_DATA.append(character_details)
+    logger.info("caching character's data DONE!")
